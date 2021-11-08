@@ -1,7 +1,7 @@
-const width = window.innerWidth;
-const height = width * 0.75;
+const width = 720;
+const height = 480;
 
-const camSpeed = 1;
+const camSpeed = 0.01;
 const camRotSpeed = Math.PI * 0.01;
 
 var camPos = vec(0,0,0);
@@ -16,95 +16,38 @@ const vox = new Vox(cnv);
 
 vox.init(width, height);
 
-vox.initProjection(80, 0.01, 10000);
+vox.initProjection(30, 0.01, 10000);
 
 const vert = [
-	-0.1,-0.1,-0.1,
-	0.1,-0.1,-0.1,
-	-0.1,0.1,-0.1,
-
-	0.1,0.1,-0.1,
-	0.1,-0.1,-0.1,
-	-0.1,0.1,-0.1,
-
-	-0.1,-0.1,-0.1,
-	0.1,-0.1,-0.1,
-	-0.1,0.1,-0.1,
-
-	0.1,0.1,-0.1,
-	0.1,-0.1,-0.1,
-	-0.1,0.1,-0.1,
-
-
-	-0.1, -0.1,-0.1,
-	-0.1, 0.1,-0.1,
-	-0.1, -0.1,0.1,
-
-	-0.1, 0.1,0.1,
-	-0.1, 0.1,-0.1,
-	-0.1, -0.1,0.1,
-
-	-0.1, -0.1,-0.1,
-	-0.1, 0.1,-0.1,
-	-0.1, -0.1,0.1,
-
-	-0.1, 0.1,0.1,
-	-0.1, 0.1,-0.1,
-	-0.1, -0.1,0.1,
+	-0.1,-0.1,0,
+	0.1,-0.1,0,
+	-0.1,0.1,0
 ];
 
 const normal = [
 	0,0,-1,
 	0,0,-1,
 	0,0,-1,
-
-	0,0,-1,
-	0,0,-1,
-	0,0,-1,
-
-	0,0,1,
-	0,0,1,
-	0,0,1,
-
-	0,0,1,
-	0,0,1,
-	0,0,1,
-	
-	-1,0,0,
-	-1,0,0,
-	-1,0,0,
-	
-	-1,0,0,
-	-1,0,0,
-	-1,0,0,
-	
-	1,0,0,
-	1,0,0,
-	1,0,0,
-	
-	1,0,0,
-	1,0,0,
-	1,0,0,
 ];
 
 const std_prog = vox.createProgram(readFile("shader.vert"), readFile("shader.frag"));
 
 document.onkeydown = function(e) {
-	if (e.key == "w") camPosVel.z = camSpeed;
-	else if (e.key == "s") camPosVel.z = -camSpeed;
+	if (e.key == "w") camPosVel.z = -camSpeed;
+	else if (e.key == "s") camPosVel.z = camSpeed;
 
-	else if (e.key == "a") camPosVel.x = -camSpeed;
-	else if (e.key == "d") camPosVel.x = camSpeed;
+	else if (e.key == "a") camPosVel.x = camSpeed;
+	else if (e.key == "d") camPosVel.x = -camSpeed;
 
-	else if (e.key == "q") camPosVel.y = camSpeed;
-	else if (e.key == "e") camPosVel.y = -camSpeed;
+	else if (e.key == "q") camPosVel.y = -camSpeed;
+	else if (e.key == "e") camPosVel.y = camSpeed;
 
 
-	if (e.key == "ArrowLeft") camRotVel.y = -camRotSpeed;
-	else if (e.key == "ArrowRight") camRotVel.y = camRotSpeed;
+	if (e.key == "ArrowLeft") camRotVel.y = camRotSpeed;
+	else if (e.key == "ArrowRight") camRotVel.y = -camRotSpeed;
 
-	else if (e.key == "ArrowUp") camRotVel.x = camRotSpeed;
-	else if (e.key == "ArrowDown") camRotVel.x = -camRotSpeed;
+	else if (e.key == "ArrowUp") camRotVel.x = -camRotSpeed;
+	else if (e.key == "ArrowDown") camRotVel.x = camRotSpeed;
 }
 
 document.onkeyup = function(e) {
@@ -125,7 +68,7 @@ document.onkeyup = function(e) {
 }
 
 const obj = new VoxObject(vert, normal, std_prog);
-obj.pos = vec(0,0,-5);
+obj.pos = vec(0,0,-0.5);
 
 const update = function() {
 	vox.clear(0,0,0,1);

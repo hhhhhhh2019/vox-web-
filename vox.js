@@ -44,8 +44,8 @@ const makeProjMatrix = function(angle, near, far, asp) {
 
 	let a = 2 / (right - left);
 	let b = 2 / (top - bottom);
-	let c = (f - n) / (f + n);
-	let d = -2 * f * n / (f - n);
+	let c = (far - near) / (far + near);
+	let d = -2 * far * near / (far - near);
 
 	return matrix(
 		a, 0, 0, 0,
@@ -53,15 +53,16 @@ const makeProjMatrix = function(angle, near, far, asp) {
 		0, 0, c, 1,
 		0, 0, d, 0
 	);*/
-	var f = 1.0 / Math.tan(angle / 2);
-  var rangeInv = 1 / (near - far);
 
-  return [
-    f / asp, 0,                          0,   0,
-    0,               f,                          0,   0,
-    0,               0,    (near + far) * rangeInv,  -1,
-    0,               0,  near * far * rangeInv * 2,   0
-  ];
+	var f = 1.0 / Math.tan(angle / 2);
+	var rangeInv = 1 / (near - far);
+
+	return [
+		f / asp, 0, 0, 0,
+		0, f, 0, 0,
+		0, 0, (near + far) * rangeInv, -1,
+		0, 0, near * far * rangeInv * 2, 0
+	];
 }
 
 
