@@ -1,8 +1,8 @@
-const width = 720;
-const height = 480;
+const width = window.innerWidth;
+const height = width * 0.75;
 
-const camSpeed = 0.01;
-const camRotSpeed = 0.01;
+const camSpeed = 1;
+const camRotSpeed = Math.PI * 0.01;
 
 var camPos = vec(0,0,0);
 var camRot = vec(0,0,0);
@@ -19,38 +19,38 @@ vox.init(width, height);
 vox.initProjection(80, 0.01, 10000);
 
 const vert = [
-	-0.01,-0.01,-0.995,
-	0.01,-0.01,-0.995,
-	-0.01,0.01,-0.995,
+	-0.1,-0.1,-0.1,
+	0.1,-0.1,-0.1,
+	-0.1,0.1,-0.1,
 
-	0.01,0.01,-0.995,
-	0.01,-0.01,-0.995,
-	-0.01,0.01,-0.995,
+	0.1,0.1,-0.1,
+	0.1,-0.1,-0.1,
+	-0.1,0.1,-0.1,
 
-	-0.01,-0.01,-1.005,
-	0.01,-0.01,-1.005,
-	-0.01,0.01,-1.005,
+	-0.1,-0.1,-0.1,
+	0.1,-0.1,-0.1,
+	-0.1,0.1,-0.1,
 
-	0.01,0.01,-1.005,
-	0.01,-0.01,-1.005,
-	-0.01,0.01,-1.005,
+	0.1,0.1,-0.1,
+	0.1,-0.1,-0.1,
+	-0.1,0.1,-0.1,
 
 
-	-0.995, -0.01,-0.01,
-	-0.995, 0.01,-0.01,
-	-0.995, -0.01,0.01,
+	-0.1, -0.1,-0.1,
+	-0.1, 0.1,-0.1,
+	-0.1, -0.1,0.1,
 
-	-0.995, 0.01,0.01,
-	-0.995, 0.01,-0.01,
-	-0.995, -0.01,0.01,
+	-0.1, 0.1,0.1,
+	-0.1, 0.1,-0.1,
+	-0.1, -0.1,0.1,
 
-	-1.005, -0.01,-0.01,
-	-1.005, 0.01,-0.01,
-	-1.005, -0.01,0.01,
+	-0.1, -0.1,-0.1,
+	-0.1, 0.1,-0.1,
+	-0.1, -0.1,0.1,
 
-	-1.005, 0.01,0.01,
-	-1.005, 0.01,-0.01,
-	-1.005, -0.01,0.01,
+	-0.1, 0.1,0.1,
+	-0.1, 0.1,-0.1,
+	-0.1, -0.1,0.1,
 ];
 
 const normal = [
@@ -69,6 +69,22 @@ const normal = [
 	0,0,1,
 	0,0,1,
 	0,0,1,
+	
+	-1,0,0,
+	-1,0,0,
+	-1,0,0,
+	
+	-1,0,0,
+	-1,0,0,
+	-1,0,0,
+	
+	1,0,0,
+	1,0,0,
+	1,0,0,
+	
+	1,0,0,
+	1,0,0,
+	1,0,0,
 ];
 
 const std_prog = vox.createProgram(readFile("shader.vert"), readFile("shader.frag"));
@@ -108,6 +124,9 @@ document.onkeyup = function(e) {
 	else if (e.key == "ArrowDown") camRotVel.x = 0;
 }
 
+const obj = new VoxObject(vert, normal, std_prog);
+obj.pos = vec(0,0,-5);
+
 const update = function() {
 	vox.clear(0,0,0,1);
 
@@ -117,7 +136,9 @@ const update = function() {
 	vox.setCameraPosition(camPos);
 	vox.setCameraRotation(camRot);
 
-	vox.draw(vert, normal, std_prog);
+	obj.draw(vox);
+	
+	//obj.pos.x += 1;
 
 	requestAnimationFrame(update);
 }

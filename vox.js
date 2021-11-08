@@ -1,5 +1,5 @@
-const vec = function(x, y, z) {
-	return {x, y, z};
+const vec = function(x, y, z, w) {
+	return {x, y, z, w};
 }
 
 const matrix = function(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) {
@@ -35,8 +35,8 @@ const rotZ = function(v, a) {
 	)
 }
 
-const makeProjMatrix = function(angle, n, f, asp) {
-	let right = Math.tan(angle / 2) * asp;
+const makeProjMatrix = function(angle, near, far, asp) {
+	/*let right = Math.tan(angle / 2) * asp;
 	let left = -right;
 
 	let top = Math.tan(angle / 2);
@@ -44,7 +44,7 @@ const makeProjMatrix = function(angle, n, f, asp) {
 
 	let a = 2 / (right - left);
 	let b = 2 / (top - bottom);
-	let c = (f + n) / (f - n);
+	let c = (f - n) / (f + n);
 	let d = -2 * f * n / (f - n);
 
 	return matrix(
@@ -52,7 +52,16 @@ const makeProjMatrix = function(angle, n, f, asp) {
 		0,-b, 0, 0,
 		0, 0, c, 1,
 		0, 0, d, 0
-	);
+	);*/
+	var f = 1.0 / Math.tan(angle / 2);
+  var rangeInv = 1 / (near - far);
+
+  return [
+    f / asp, 0,                          0,   0,
+    0,               f,                          0,   0,
+    0,               0,    (near + far) * rangeInv,  -1,
+    0,               0,  near * far * rangeInv * 2,   0
+  ];
 }
 
 
@@ -96,7 +105,7 @@ class Vox {
 		this.gl.compileShader(shader);
 
 		if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
-			console.log(this.gl.getShaderInfoLog(shader));
+			alert(this.gl.getShaderInfoLog(shader));
 			return null;
 		}
 
@@ -112,7 +121,7 @@ class Vox {
 		this.gl.linkProgram(program);
 
 		if (!this.gl.getProgramParameter(program, this.gl.LINK_STATUS)) {
-			console.log(this.gl.getProgramInfoLog(program));
+			alert(this.gl.getProgramInfoLog(program));
 			return null;
 		}
 
@@ -145,7 +154,28 @@ class Vox {
 		)
 	}
 
-	draw(verts, normals, prog, rend_type=this.gl.TRIANGLES) {
+	setUniform(prog, unifn, value, type) {
+		const uniform = this.gl.getUniformLocation(prog, unifn);
+		
+		//alert(value + "\n" + type)
+		
+		if (type == "int")
+			this.gl.uniform1i(uniform, value);
+		else if (type == "float")
+			this.gl.uniform1f(uniform, value)
+		else if (type == "vec2")
+			this.gl.uniform2f(uniform, value.x, value.y);
+		else if (type == "vec3")
+			this.gl.uniform3f(uniform, value.x, value.y, value.z);
+		else if (type == "vec4")
+			this.gl.uniform4f(uniform, value.x, value.y, value.z, value.w);
+		else if (type == "mat3")
+			this.gl.uniformMatrix3fv(uniform, false, value);
+		else if (type == "mat4")
+			this.gl.uniformMatrix4fv(uniform, false, value);
+	}
+
+	draw(verts, normals, prog, unif, rend_type=this.gl.TRIANGLES) {
 		this.gl.useProgram(prog);
 
 
@@ -181,7 +211,7 @@ class Vox {
 			this.gl.vertexAttribPointer(normalAttribute, 3, this.gl.FLOAT, false, 0, 0);
 
 
-			const projMatUniform = this.gl.getUniformLocation(prog, 'projMat');
+			/*const projMatUniform = this.gl.getUniformLocation(prog, 'projMat');
 			this.gl.uniformMatrix4fv(projMatUniform, false, this.projMatrix);
 
 			const camMvMatUniform = this.gl.getUniformLocation(prog, 'camMvMat');
@@ -191,7 +221,16 @@ class Vox {
 			this.gl.uniformMatrix4fv(camRotMatUniform, false, this.camRotMat);
 
 			const lightDirUniform = this.gl.getUniformLocation(prog, 'light_direction');
-			this.gl.uniform3f(lightDirUniform, this.light_dir.x, this.light_dir.y, this.light_dir.z);
+			this.gl.uniform3f(lightDirUniform, this.light_dir.x, this.light_dir.y, this.light_dir.z);*/
+
+			for (let i in unif) {
+				this.setUniform(prog, i, unif[i].value, unif[i].type);
+			}
+
+			this.setUniform(prog, "projMat", this.projMatrix, "mat4");
+			this.setUniform(prog, "camMvMat", this.camMvMat, "mat4");
+			this.setUniform(prog, "camRotMat", this.camRotMat, "mat4");
+			this.setUniform(prog, "light_direction", vec(0,0,-1), "vec3");
 
 
 			this.gl.drawArrays(rend_type, 0, 3);
@@ -204,5 +243,35 @@ class Vox {
 
 		this.gl.clearColor(0, 0, 0, 1);
 		this.gl.clear(this.gl.DEPTH_BUFFER_BIT);
+	}
+}
+
+
+class VoxObject {
+	constructor(vert, norm, prog, unif={}) {
+		this.vert = vert;
+		this.norm = norm;
+		this.prog = prog;
+		
+		this.pos = vec(0,0,0);
+		
+		this.unif = unif;
+	}
+	
+	move(vel) {
+		this.pos.x += vel.x; this.pos.y += vel.y; this.pos.z += vel.z;
+	}
+	
+	draw(vox) {
+		let mvMat = matrix(
+			1,0,0,this.pos.x,
+			0,1,0,this.pos.y,
+			0,0,1,this.pos.z,
+			0,0,0,1
+		);
+		
+		vox.draw(this.vert, this.norm, this.prog, Object.assign(this.unif, {
+			"objMvMat": {value: mvMat, type: "mat4"}
+		}));
 	}
 }
