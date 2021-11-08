@@ -73,7 +73,9 @@ obj.pos = vec(0,0,-0.5);
 const update = function() {
 	vox.clear(0,0,0,1);
 
-	camPos.x += camPosVel.x; camPos.y += camPosVel.y; camPos.z += camPosVel.z;
+	let cvel = rotY(camPosVel, camRot.y);
+
+	camPos.x += cvel.x; camPos.y += cvel.y; camPos.z += cvel.z;
 	camRot.x += camRotVel.x; camRot.y += camRotVel.y; camRot.z += camRotVel.z;
 
 	vox.setCameraPosition(camPos);
